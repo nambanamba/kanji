@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>国語 漢字と言葉 ドリル</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --kotoba: #7c3aed;
+      --kotoba-dark: #6d28d9;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --text: #1f2937;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+    header p { font-size: 0.8rem; opacity: 0.9; margin-top: 2px; }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 14px; }
+
+    /* 科目切替（大きいタブ） */
+    .subject-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .subject-tab {
+      flex: 1; text-align: center; padding: 12px 4px; font-size: 1rem; font-weight: 800;
+      border-radius: var(--radius); cursor: pointer; border: 2px solid var(--border); background: #fff; color: var(--text-muted);
+    }
+    .subject-tab.active.kanji-active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .subject-tab.active.kotoba-active { background: var(--kotoba); border-color: var(--kotoba); color: #fff; }
+
+    .nav-tabs {
+      display: flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .nav-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 7px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+    .nav-tab.active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    #panel-kotoba .nav-tab.active { color: var(--kotoba); }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .progress-box {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    #panel-kotoba .progress-box { background: #f5f3ff; border-color: #ddd6fe; }
+    .progress-title { font-size: 0.92rem; font-weight: 700; color: #1e3a8a; display: flex; justify-content: space-between; margin-bottom: 6px; }
+    #panel-kotoba .progress-title { color: #4c1d95; }
+    .progress-bar-bg { background: #dbeafe; border-radius: 8px; height: 12px; overflow: hidden; }
+    #panel-kotoba .progress-bar-bg { background: #ede9fe; }
+    .progress-bar-fill { background: var(--success); height: 100%; width: 0%; transition: width 0.3s ease; }
+    .progress-sub { font-size: 0.78rem; color: #475569; margin-top: 6px; }
+
+    .unit-controls { display: flex; gap: 8px; margin-bottom: 10px; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+
+    .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+    .unit-btn { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; border: 2px solid var(--border); background: #fff; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-align: left; }
+    .unit-btn.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary-dark); }
+    #panel-kotoba .unit-btn.selected { border-color: var(--kotoba); background: #f5f3ff; color: var(--kotoba-dark); }
+    .unit-badge { font-size: 0.72rem; padding: 2px 6px; border-radius: 10px; background: #e2e8f0; color: #475569; }
+    .unit-btn.selected .unit-badge { background: var(--primary); color: #fff; }
+    #panel-kotoba .unit-btn.selected .unit-badge { background: var(--kotoba); }
+
+    .setting-group { margin-top: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9; }
+    .setting-label { font-size: 0.88rem; font-weight: 700; margin-bottom: 8px; color: #334155; }
+
+    .count-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 7px 14px; border-radius: 16px; border: 1px solid var(--border); background: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    #panel-kotoba .chip.active { background: var(--kotoba); border-color: var(--kotoba); }
+
+    .count-custom-box {
+      display: flex; align-items: center; gap: 6px; background: #fff;
+      border: 1.5px solid var(--border); border-radius: 8px; padding: 4px 10px;
+    }
+    .count-custom-box label { font-size: 0.82rem; color: #475569; font-weight: 600; white-space: nowrap; }
+    .count-input { width: 52px; border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; font-size: 1rem; font-weight: 700; text-align: center; }
+    .count-input:focus { outline: 2px solid var(--primary); }
+
+    .btn-main {
+      width: 100%; padding: 15px; font-size: 1.1rem; font-weight: 800; color: #fff;
+      background: var(--primary); border: none; border-radius: var(--radius); cursor: pointer;
+      margin-top: 16px; box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-main:hover { background: var(--primary-dark); }
+    #panel-kotoba .btn-main { background: var(--kotoba); box-shadow: 0 4px 10px rgba(124,58,237,0.3); }
+    #panel-kotoba .btn-main:hover { background: var(--kotoba-dark); }
+
+    /* 採点画面（漢字） */
+    .check-item { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+    .check-item.is-correct { border-color: #86efac; background: #f0fdf4; }
+    .check-item.is-wrong { border-color: #fca5a5; background: #fef2f2; }
+    .check-head { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
+    .check-kana-text { font-size: 1.35rem; font-weight: 800; color: #0f172a; letter-spacing: 0.05em; }
+    .check-mean-text { font-size: 0.82rem; color: #475569; margin-bottom: 8px; }
+    .check-ans-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; }
+    .check-ans-word { font-size: 1.25rem; font-weight: 800; color: #dc2626; }
+    .toggle-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .toggle-btn { padding: 10px; font-size: 0.95rem; font-weight: 700; border-radius: 6px; border: 2px solid var(--border); background: #fff; cursor: pointer; }
+    .toggle-btn.btn-ok.active { background: var(--success); color: #fff; border-color: var(--success); }
+    .toggle-btn.btn-ng.active { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    .status-badge-passed { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: #dcfce7; color: #16a34a; }
+    .status-badge-unpassed { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: #fee2e2; color: #dc2626; }
+    .history-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+
+    /* 言葉クイズ画面 */
+    .genre-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .genre-chip { padding: 5px 10px; border-radius: 14px; border: 1px solid var(--border); background: #fff; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .genre-chip.active { background: var(--kotoba); color: #fff; border-color: var(--kotoba); }
+
+    .quiz-progress { text-align: center; font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 10px; }
+    .quiz-card { background: #fff; border: 2px solid #ddd6fe; border-radius: var(--radius); padding: 24px 18px; text-align: center; }
+    .quiz-genre-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: #ede9fe; color: var(--kotoba-dark); margin-bottom: 10px; }
+    .quiz-q-text { font-size: 1.15rem; font-weight: 700; line-height: 1.6; margin-bottom: 18px; white-space: pre-wrap; }
+    .quiz-answer-area { min-height: 70px; }
+    .quiz-ans-box { background: #f5f3ff; border: 1.5px dashed #c4b5fd; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+    .quiz-ans-word { font-size: 1.4rem; font-weight: 800; color: var(--kotoba-dark); }
+    .quiz-ans-note { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
+    .btn-reveal { width: 100%; padding: 14px; font-size: 1rem; font-weight: 800; color: var(--kotoba-dark); background: #ede9fe; border: 2px solid #ddd6fe; border-radius: var(--radius); cursor: pointer; }
+    .quiz-judge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .btn-judge { padding: 14px; font-size: 1rem; font-weight: 800; border-radius: var(--radius); border: none; cursor: pointer; color: #fff; }
+    .btn-judge.ok { background: var(--success); }
+    .btn-judge.ng { background: var(--danger); }
+
+    .result-box { text-align: center; padding: 10px; }
+    .result-score { font-size: 2rem; font-weight: 800; color: var(--kotoba-dark); margin: 10px 0; }
+
+    /* =========================================================
+       印刷専用スタイル（漢字パートのみ）
+       ========================================================= */
+    #print-region { display: none; }
+
+     @page { size: A4 portrait; margin: 0; }
+     @media print {
+       body { background: #fff !important; padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+       header, .container { display: none !important; }
+       #print-region { display: block !important; padding: 18mm 20mm; box-sizing: border-box; }
+
+      .p-head { border-bottom: 2px solid #000; padding-bottom: 3px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: flex-end; }
+      .p-title { font-size: 13pt; font-weight: bold; }
+      .p-meta { display: flex; gap: 14px; font-size: 8.5pt; }
+      .p-line { display: inline-block; border-bottom: 1px solid #000; min-width: 55px; }
+
+      .section-title { font-size: 9pt; font-weight: bold; background: #f1f5f9; border-left: 4px solid #1e3a8a; padding: 2px 6px; margin-bottom: 5px; page-break-after: avoid; }
+
+      .test-section { margin-bottom: 8px; page-break-inside: avoid; }
+      .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; }
+      .test-item { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px dashed #c4c4c4; padding: 6px 0; page-break-inside: avoid; }
+      .test-q-text { font-size: 9.5pt; line-height: 1.2; }
+      .test-hint { font-size: 6.5pt; color: #555; }
+      .test-ans-box { width: 100%; height: 22mm; border: 1.5px solid #000; border-radius: 2px; }
+
+      .practice-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .practice-table thead tr { page-break-after: avoid; }
+      .practice-table th { background: #f8fafc !important; border: 1px solid #000; font-size: 7.5pt; padding: 2px; text-align: center; }
+
+      .p-row { height: 30mm; page-break-inside: avoid; break-inside: avoid; }
+      .p-no-td { border: 1px solid #000; text-align: center; font-size: 10pt; font-weight: bold; vertical-align: middle; }
+      .p-word-td { border: 1px solid #000; padding: 2px 6px; vertical-align: middle; }
+      .p-sample-word { font-size: 18pt; font-weight: bold; letter-spacing: 0.06em; line-height: 1.2; }
+      .p-kana-sub { font-size: 7pt; color: #555; }
+      .p-box-td { border: 1px solid #000; padding: 0; vertical-align: middle; text-align: center; }
+      .p-grid-cell { width: 100%; height: 30mm; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; }
+      .p-grid-cell::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; border-top: 1px dashed #bbb; }
+      .p-grid-cell::after { content: ""; position: absolute; top: 0; left: 50%; width: 1px; height: 100%; border-left: 1px dashed #bbb; }
+      .p-trace-txt { font-size: 18pt; font-weight: bold; color: #c8c8c8 !important; letter-spacing: 0.06em; position: relative; z-index: 2; line-height: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📘 国語 漢字と言葉 ドリル</h1>
+    <p>漢字は書いて覚える／言葉は画面でサクサク一問一答</p>
+  </header>
+
+  <div class="container">
+
+    <div class="subject-tabs">
+      <button class="subject-tab active kanji-active" id="subject-tab-kanji" onclick="switchSubject('kanji')">📝 漢字</button>
+      <button class="subject-tab" id="subject-tab-kotoba" onclick="switchSubject('kotoba')">🈁 言葉</button>
+    </div>
+
+    <!-- ============ 漢字パネル ============ -->
+    <div id="panel-kanji">
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-kanji-home" onclick="switchKanjiTab('home')">① 印刷・問題設定</button>
+        <button class="nav-tab" id="tab-kanji-check" onclick="switchKanjiTab('check')">② できた / できなかった</button>
+        <button class="nav-tab" id="tab-kanji-history" onclick="switchKanjiTab('history')">進捗一覧</button>
+      </div>
+
+      <div id="screen-kanji-home">
+        <div class="progress-box">
+          <div class="progress-title"><span>🎯 クリア進捗</span><span id="kanji-progress-text">0 / 0 語 クリア</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="kanji-progress-fill"></div></div>
+          <div class="progress-sub" id="kanji-progress-sub-text">💡 「できた」チェックが入っていない問題から自動選出されます。</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>単元を選ぶ</span><span id="kanji-selected-units-count" style="font-size:0.82rem; color:var(--text-muted); font-weight:600;"></span></div>
+          <div class="unit-controls">
+            <button class="btn-sm" onclick="kanjiSelectAllUnits()">すべて選ぶ</button>
+            <button class="btn-sm" onclick="kanjiClearAllUnits()">クリア</button>
+          </div>
+          <div class="unit-grid" id="kanji-unit-grid-container"></div>
+
+          <div class="setting-group">
+            <div class="setting-label">今日の出題語数（自分で決める）</div>
+            <div class="count-row">
+              <div class="chip-row" id="kanji-count-chips">
+                <button class="chip" data-count="5" onclick="kanjiSetCount(5)">5語</button>
+                <button class="chip active" data-count="10" onclick="kanjiSetCount(10)">10語</button>
+                <button class="chip" data-count="15" onclick="kanjiSetCount(15)">15語</button>
+                <button class="chip" data-count="20" onclick="kanjiSetCount(20)">20語</button>
+                <button class="chip" data-count="all" onclick="kanjiSetCount('all')">未クリア全問</button>
+              </div>
+              <div class="count-custom-box">
+                <label for="kanji-count-custom-input">自由入力:</label>
+                <input type="number" id="kanji-count-custom-input" class="count-input" min="1" max="99" placeholder="12" onchange="kanjiSetCountCustom(this.value)" />
+                <span style="font-size:0.82rem; color:#475569;">語</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-main" onclick="kanjiGenerateDailySetAndPrint()">🖨️ 今日の問題を印刷する（A4 縦）</button>
+        </div>
+      </div>
+
+      <div id="screen-kanji-check" style="display: none;">
+        <div class="card">
+          <div class="card-title">
+            <span>今日の採点</span>
+            <button class="btn-sm" style="background:#dcfce7; color:#16a34a; border-color:#86efac;" onclick="kanjiMarkAllCorrect()">✨ すべてできた</button>
+          </div>
+          <p style="font-size: 0.83rem; color: var(--text-muted); margin-bottom: 14px;">
+            書けた問題は「⭕ できた」、書けなかった問題は「❌ できなかった」にしてください。<br>
+            <b>「⭕ できた」にした問題は次回以降出題されなくなります。</b>
+          </p>
+          <div id="kanji-check-list-container"></div>
+          <button class="btn-main" style="background: var(--success);" onclick="kanjiSaveCheckResults()">💾 採点結果を保存する（明日へ引き継ぎ）</button>
+        </div>
+      </div>
+
+      <div id="screen-kanji-history" style="display: none;">
+        <div class="card">
+          <div class="card-title"><span>全問題のクリア状況</span><button class="btn-sm" onclick="kanjiRenderHistoryList()">🔄 更新</button></div>
+          <div id="kanji-history-list-container"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>データ管理</span></div>
+          <button class="btn-sm" style="color: var(--danger); border-color: #fca5a5;" onclick="kanjiClearHistoryData()">🗑️ クリア履歴をリセット</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 言葉パネル ============ -->
+    <div id="panel-kotoba" style="display:none;">
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-kotoba-home" onclick="switchKotobaTab('home')">① クイズ設定</button>
+        <button class="nav-tab" id="tab-kotoba-quiz" onclick="switchKotobaTab('quiz')" style="display:none;">② クイズ中</button>
+        <button class="nav-tab" id="tab-kotoba-history" onclick="switchKotobaTab('history')">進捗一覧</button>
+      </div>
+
+      <div id="screen-kotoba-home">
+        <div class="progress-box">
+          <div class="progress-title"><span>🎯 クリア進捗</span><span id="kotoba-progress-text">0 / 0 問 クリア</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="kotoba-progress-fill"></div></div>
+          <div class="progress-sub" id="kotoba-progress-sub-text">💡 間違えた問題から優先的に出題されます。</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>単元を選ぶ</span><span id="kotoba-selected-units-count" style="font-size:0.82rem; color:var(--text-muted); font-weight:600;"></span></div>
+          <div class="unit-controls">
+            <button class="btn-sm" onclick="kotobaSelectAllUnits()">すべて選ぶ</button>
+            <button class="btn-sm" onclick="kotobaClearAllUnits()">クリア</button>
+          </div>
+          <div class="unit-grid" id="kotoba-unit-grid-container"></div>
+
+          <div class="setting-group">
+            <div class="setting-label">ジャンルで絞る（任意）</div>
+            <div class="genre-chip-row" id="kotoba-genre-chip-container"></div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-label">今日の出題数（自分で決める）</div>
+            <div class="count-row">
+              <div class="chip-row" id="kotoba-count-chips">
+                <button class="chip" data-count="5" onclick="kotobaSetCount(5)">5問</button>
+                <button class="chip active" data-count="10" onclick="kotobaSetCount(10)">10問</button>
+                <button class="chip" data-count="15" onclick="kotobaSetCount(15)">15問</button>
+                <button class="chip" data-count="20" onclick="kotobaSetCount(20)">20問</button>
+                <button class="chip" data-count="all" onclick="kotobaSetCount('all')">未クリア全問</button>
+              </div>
+              <div class="count-custom-box">
+                <label for="kotoba-count-custom-input">自由入力:</label>
+                <input type="number" id="kotoba-count-custom-input" class="count-input" min="1" max="99" placeholder="12" onchange="kotobaSetCountCustom(this.value)" />
+                <span style="font-size:0.82rem; color:#475569;">問</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-main" onclick="kotobaStartQuiz()">▶️ クイズを始める</button>
+        </div>
+      </div>
+
+      <div id="screen-kotoba-quiz" style="display:none;">
+        <div class="quiz-progress" id="kotoba-quiz-progress">第 1 問 / 10 問</div>
+        <div class="quiz-card">
+          <div class="quiz-genre-badge" id="kotoba-quiz-genre"></div>
+          <div class="quiz-q-text" id="kotoba-quiz-q"></div>
+          <div class="quiz-answer-area" id="kotoba-quiz-answer-area">
+            <button class="btn-reveal" onclick="kotobaRevealAnswer()">🔎 答えを見る</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-kotoba-result" style="display:none;">
+        <div class="card result-box">
+          <div class="card-title" style="justify-content:center;">クイズ終了！</div>
+          <div class="result-score" id="kotoba-result-score">0 / 0 問 正解</div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;">間違えた問題は次回優先して出てきます。</p>
+          <button class="btn-main" onclick="kotobaBackToHomeFromResult()">🏠 設定画面にもどる</button>
+        </div>
+      </div>
+
+      <div id="screen-kotoba-history" style="display:none;">
+        <div class="card">
+          <div class="card-title"><span>全問題のクリア状況</span><button class="btn-sm" onclick="kotobaRenderHistoryList()">🔄 更新</button></div>
+          <div id="kotoba-history-list-container"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>データ管理</span></div>
+          <button class="btn-sm" style="color: var(--danger); border-color: #fca5a5;" onclick="kotobaClearHistoryData()">🗑️ クリア履歴をリセット</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="print-region"></div>
+
+  <script src="data.js"></script>
+  <script>
+    /* =========================================================
+       共通：科目タブ切り替え
+       ========================================================= */
+    function switchSubject(subject) {
+      document.getElementById('subject-tab-kanji').classList.toggle('active', subject === 'kanji');
+      document.getElementById('subject-tab-kotoba').classList.toggle('active', subject === 'kotoba');
+      document.getElementById('panel-kanji').style.display = subject === 'kanji' ? 'block' : 'none';
+      document.getElementById('panel-kotoba').style.display = subject === 'kotoba' ? 'block' : 'none';
+    }
+
+    /* =========================================================
+       間隔反復ロジック（漢字・言葉で共通のアルゴリズム、ストレージは別）
+       kosukequiz-battle/kanji-print-appと同じ考え方
+       ========================================================= */
+    const BOX_INTERVAL_DAYS = [1, 2, 4, 8, 16, 32, 64, 120];
+    function isMasteredStat(s){ return !!(s && (s.correct||0) > 0); }
+    function isWeakStat(s){ return !!(s && (s.wrong||0) > 0 && (s.box||0) <= 1); }
+    function scheduleNext(s, correct){
+      s.box = correct ? Math.min((s.box||0) + 1, BOX_INTERVAL_DAYS.length - 1) : 0;
+      s.nextDue = Date.now() + BOX_INTERVAL_DAYS[s.box] * 24 * 60 * 60 * 1000;
+    }
+    function makeMasteryHelpers(storageKey) {
+      function get() { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch(e) { return {}; } }
+      function save(data) { try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch(e) {} }
+      function setStatus(id, status) {
+        const mastery = get();
+        if (status === "unseen") {
+          delete mastery[id];
+        } else if (status === "mastered") {
+          const s = { correct: 1, wrong: 0, lastAnswered: Date.now(), lastCorrectAt: Date.now() };
+          scheduleNext(s, true);
+          mastery[id] = s;
+        } else if (status === "weak") {
+          const s = { correct: 0, wrong: 1, lastAnswered: Date.now() };
+          scheduleNext(s, false);
+          mastery[id] = s;
+        }
+        save(mastery);
+      }
+      function currentStatus(id) {
+        const s = get()[id];
+        if (!s) return null;
+        if ((s.correct||0) > 0 && !(s.wrong||0)) return "correct";
+        if ((s.wrong||0) > 0 && !(s.correct||0)) return "wrong";
+        return null;
+      }
+      function isCleared(id) {
+        const s = get()[id];
+        return isMasteredStat(s) && !isWeakStat(s);
+      }
+      return { get, save, setStatus, currentStatus, isCleared };
+    }
+
+    function pickDailySet(pool, mastery, count) {
+      const lastCorrectOf = d => { const s = mastery[d.id]; return (s && s.lastCorrectAt) ? s.lastCorrectAt : 0; };
+      const tier1 = [], tier2 = [], tier3 = [];
+      pool.forEach(d => {
+        const s = mastery[d.id];
+        const wrong = s ? (s.wrong||0) : 0, correct = s ? (s.correct||0) : 0;
+        if (wrong > correct) tier1.push(d);
+        else if (wrong > 0) tier2.push(d);
+        else tier3.push(d);
+      });
+      tier1.sort((a,b) => lastCorrectOf(a) - lastCorrectOf(b));
+      tier2.sort((a,b) => lastCorrectOf(a) - lastCorrectOf(b));
+      const ordered = tier1.concat(tier2).concat([...tier3].sort(() => Math.random() - 0.5));
+      const targetCount = count === "all" ? ordered.length : Math.min(parseInt(count, 10) || 10, ordered.length);
+      return { set: ordered.slice(0, targetCount), allClearedOfDue: tier1.length === 0 && tier2.length === 0 };
+    }
+
+    /* =========================================================
+       漢字パート（kanji-print-appと同じ方式）
+       ========================================================= */
+    const KANJI_SETTINGS_KEY = "kokugo_kanji_settings_v1";
+    const KANJI_MASTERY_KEY  = "kokugo_kanji_stats_v1";
+    const kanjiMastery = makeMasteryHelpers(KANJI_MASTERY_KEY);
+
+    let kanjiSelectedUnits = new Set();
+    let kanjiCurrentCount  = 10;
+    let kanjiCurrentSet    = [];
+
+    function switchKanjiTab(tab) {
+      document.querySelectorAll('#panel-kanji .nav-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-kanji-${tab}`).classList.add('active');
+      document.getElementById('screen-kanji-home').style.display    = tab === 'home'    ? 'block' : 'none';
+      document.getElementById('screen-kanji-check').style.display   = tab === 'check'   ? 'block' : 'none';
+      document.getElementById('screen-kanji-history').style.display = tab === 'history' ? 'block' : 'none';
+      if (tab === 'home')    kanjiUpdateProgressDisplay();
+      if (tab === 'check')   kanjiRenderCheckList();
+      if (tab === 'history') kanjiRenderHistoryList();
+    }
+
+    function kanjiLoadCachedSettings() {
+      try {
+        const raw = localStorage.getItem(KANJI_SETTINGS_KEY);
+        if (!raw) return;
+        const cached = JSON.parse(raw);
+        if (Array.isArray(cached.selectedUnits) && cached.selectedUnits.length > 0) kanjiSelectedUnits = new Set(cached.selectedUnits);
+        if (cached.count !== undefined) {
+          kanjiCurrentCount = cached.count;
+          document.querySelectorAll('#kanji-count-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.count == kanjiCurrentCount));
+          if (typeof kanjiCurrentCount === 'number') document.getElementById('kanji-count-custom-input').value = kanjiCurrentCount;
+        }
+      } catch (e) {}
+    }
+    function kanjiSaveCachedSettings() {
+      try { localStorage.setItem(KANJI_SETTINGS_KEY, JSON.stringify({ selectedUnits: Array.from(kanjiSelectedUnits), count: kanjiCurrentCount })); } catch (e) {}
+    }
+
+    function kanjiRenderUnitGrid() {
+      const container = document.getElementById('kanji-unit-grid-container');
+      container.innerHTML = '';
+      KANJI_UNITS.forEach(u => {
+        const isSel = kanjiSelectedUnits.has(u.key);
+        const btn = document.createElement('button');
+        btn.className = `unit-btn ${isSel ? 'selected' : ''}`;
+        btn.innerHTML = `<span>${u.name}</span><span class="unit-badge">${u.count}語</span>`;
+        btn.onclick = () => kanjiToggleUnit(u.key);
+        container.appendChild(btn);
+      });
+      if (KANJI_UNITS.length === 0) container.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">まだ漢字データがありません（準備中）。</p>';
+    }
+    function kanjiToggleUnit(key) {
+      if (kanjiSelectedUnits.has(key)) kanjiSelectedUnits.delete(key); else kanjiSelectedUnits.add(key);
+      kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings();
+    }
+    function kanjiSelectAllUnits() { KANJI_UNITS.forEach(u => kanjiSelectedUnits.add(u.key)); kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings(); }
+    function kanjiClearAllUnits() { kanjiSelectedUnits.clear(); kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings(); }
+    function kanjiUpdateSelectedCountLabel() {
+      const pool = kanjiGetPool();
+      document.getElementById('kanji-selected-units-count').textContent = `${kanjiSelectedUnits.size}単元 / ${pool.length}語 選択中`;
+    }
+
+    function kanjiSetCount(cnt) {
+      kanjiCurrentCount = cnt;
+      document.querySelectorAll('#kanji-count-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.count == cnt));
+      document.getElementById('kanji-count-custom-input').value = typeof cnt === 'number' ? cnt : '';
+      kanjiSaveCachedSettings();
+    }
+    function kanjiSetCountCustom(val) {
+      const n = parseInt(val, 10);
+      if (!isNaN(n) && n >= 1) { kanjiCurrentCount = n; document.querySelectorAll('#kanji-count-chips .chip').forEach(c => c.classList.remove('active')); }
+      kanjiSaveCachedSettings();
+    }
+
+    function kanjiGetPool() { return kanjiSelectedUnits.size === 0 ? [] : KANJI_DATA.filter(d => kanjiSelectedUnits.has(d.unitKey)); }
+
+    function kanjiUpdateProgressDisplay() {
+      const pool = kanjiGetPool();
+      const total = pool.length;
+      if (total === 0) {
+        document.getElementById('kanji-progress-text').textContent = '単元を選択してください';
+        document.getElementById('kanji-progress-fill').style.width = '0%';
+        return;
+      }
+      const passed = pool.filter(d => kanjiMastery.isCleared(d.id)).length;
+      const pct = Math.round((passed / total) * 100);
+      document.getElementById('kanji-progress-text').textContent = `${passed} / ${total} 語 クリア (${pct}%)`;
+      document.getElementById('kanji-progress-fill').style.width = `${pct}%`;
+      const remaining = total - passed;
+      document.getElementById('kanji-progress-sub-text').textContent = remaining === 0
+        ? '🎉 全問クリア達成！おめでとうございます！'
+        : `残り ${remaining} 語が未クリアです（次回はこの中から優先して出題されます）。`;
+    }
+
+    function kanjiGenerateDailySet(alertIfEmpty = true) {
+      const pool = kanjiGetPool();
+      if (pool.length === 0) { if (alertIfEmpty) alert('単元を1つ以上選択してください。'); return; }
+      const mastery = kanjiMastery.get();
+      const { set, allClearedOfDue } = pickDailySet(pool, mastery, kanjiCurrentCount);
+      if (allClearedOfDue && alertIfEmpty) alert('🎉 選択単元の漢字はすべてクリア済み！全問からランダムで出題します。');
+      kanjiCurrentSet = set;
+    }
+    function kanjiGenerateDailySetAndPrint() { kanjiGenerateDailySet(true); if (kanjiCurrentSet.length > 0) kanjiPrintSinglePage(); }
+
+    function kanjiRenderCheckList() {
+      const container = document.getElementById('kanji-check-list-container');
+      if (kanjiCurrentSet.length === 0) kanjiGenerateDailySet(false);
+      if (kanjiCurrentSet.length === 0) {
+        container.innerHTML = '<p style="text-align:center;padding:20px;color:#64748b;">問題がありません。「① 印刷・問題設定」から問題を作成してください。</p>';
+        return;
+      }
+      container.innerHTML = '';
+      kanjiCurrentSet.forEach((item, index) => {
+        const res = kanjiMastery.currentStatus(item.id);
+        const div = document.createElement('div');
+        div.className = `check-item ${res === 'correct' ? 'is-correct' : res === 'wrong' ? 'is-wrong' : ''}`;
+        div.id = `kanji-check-item-${item.id}`;
+        div.innerHTML = `
+          <div class="check-head"><span>第 ${index + 1} 問</span><span>${item.unitKey}</span></div>
+          <div class="check-kana-text">${item.kana}</div>
+          <div class="check-mean-text">💡 ${item.mean}</div>
+          <div class="check-ans-box"><span style="font-size:0.75rem;color:#64748b;font-weight:bold;">正解: </span><span class="check-ans-word">${item.word}</span></div>
+          <div class="toggle-row">
+            <button class="toggle-btn btn-ok ${res === 'correct' ? 'active' : ''}" onclick="kanjiSetResult('${item.id}', 'ok')">⭕ できた</button>
+            <button class="toggle-btn btn-ng ${res === 'wrong' ? 'active' : ''}" onclick="kanjiSetResult('${item.id}', 'ng')">❌ できなかった</button>
+          </div>`;
+        container.appendChild(div);
+      });
+    }
+    function kanjiSetResult(id, val) {
+      kanjiMastery.setStatus(id, val === 'ok' ? 'mastered' : 'weak');
+      const el = document.getElementById(`kanji-check-item-${id}`);
+      if (el) {
+        el.classList.toggle('is-correct', val === 'ok');
+        el.classList.toggle('is-wrong', val === 'ng');
+        el.querySelector('.btn-ok').classList.toggle('active', val === 'ok');
+        el.querySelector('.btn-ng').classList.toggle('active', val === 'ng');
+      }
+      kanjiUpdateProgressDisplay();
+    }
+    function kanjiMarkAllCorrect() { kanjiCurrentSet.forEach(item => kanjiSetResult(item.id, 'ok')); }
+    function kanjiSaveCheckResults() {
+      const unanswered = kanjiCurrentSet.filter(item => !kanjiMastery.currentStatus(item.id)).length;
+      alert(unanswered > 0 ? `${unanswered} 語、〇✕が未入力です。入力した分は記録ずみです。` : '🎉 全問、記録ずみです。できなかった語は次回優先して出てきます。');
+      switchKanjiTab('home');
+    }
+
+    function kanjiRenderHistoryList() {
+      const pool = kanjiGetPool();
+      const container = document.getElementById('kanji-history-list-container');
+      if (pool.length === 0) { container.innerHTML = '<p style="text-align:center;padding:20px;color:#64748b;">単元を選択してください。</p>'; return; }
+      container.innerHTML = '';
+      pool.forEach(it => {
+        const isPassed = kanjiMastery.isCleared(it.id);
+        const div = document.createElement('div');
+        div.className = 'history-row';
+        div.innerHTML = `
+          <div><div style="font-size:0.8rem;color:#64748b;">${it.kana} (${it.unitKey})</div><div style="font-size:1.1rem;font-weight:bold;">${it.word}</div></div>
+          <span class="${isPassed ? 'status-badge-passed' : 'status-badge-unpassed'}">${isPassed ? '⭕ クリア済み' : '❌ 未クリア'}</span>`;
+        container.appendChild(div);
+      });
+    }
+    function kanjiClearHistoryData() {
+      if (confirm('クリア履歴をすべてリセットしますか？')) {
+        localStorage.removeItem(KANJI_MASTERY_KEY);
+        alert('リセットしました。');
+        kanjiUpdateProgressDisplay(); kanjiRenderHistoryList();
+      }
+    }
+
+    function kanjiPrintSinglePage() {
+      const todayStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+      const unitNames = Array.from(kanjiSelectedUnits).join('・') || '全単元';
+      const n = kanjiCurrentSet.length;
+      const half = Math.ceil(n / 2);
+      const makeTestItem = (it, idx) => `
+        <div class="test-item"><div class="test-q-text"><b>${idx + 1}.</b> ${it.kana} <span class="test-hint">(${it.mean})</span></div><div class="test-ans-box"></div></div>`;
+      const leftHtml  = kanjiCurrentSet.slice(0, half).map((it, i) => makeTestItem(it, i)).join('');
+      const rightHtml = kanjiCurrentSet.slice(half).map((it, i) => makeTestItem(it, half + i)).join('');
+      const practiceRowsHtml = kanjiCurrentSet.map((it, idx) => `
+        <tr class="p-row">
+          <td class="p-no-td" style="width:4%;">${idx + 1}</td>
+          <td class="p-word-td" style="width:22%;"><div class="p-sample-word">${it.word}</div><div class="p-kana-sub">${it.kana}</div></td>
+          <td class="p-box-td" style="width:15%;"><div class="p-grid-cell"><span class="p-trace-txt">${it.word}</span></div></td>
+          <td class="p-box-td" style="width:15%;"><div class="p-grid-cell"></div></td>
+          <td class="p-box-td" style="width:15%;"><div class="p-grid-cell"></div></td>
+          <td class="p-box-td" style="width:15%;"><div class="p-grid-cell"></div></td>
+          <td class="p-box-td" style="width:14%;"><div class="p-grid-cell"></div></td>
+        </tr>`).join('');
+      document.getElementById('print-region').innerHTML = `
+        <div class="p-head">
+          <div><div class="p-title">中学受験 国語 漢字テスト＆練習プリント（${n}問）</div><div style="font-size:8pt;color:#555;margin-top:1px;">範囲: ${unitNames}</div></div>
+          <div class="p-meta"><div>日付: <span class="p-line">${todayStr}</span></div><div>氏名: <span class="p-line"></span></div><div>得点: <span class="p-line" style="min-width:38px;"> / ${n}</span></div></div>
+        </div>
+        <div class="test-section">
+          <div class="section-title">① まずテストしてみよう（ひらがなを正しい漢字で書く）</div>
+          <div class="test-grid"><div>${leftHtml}</div><div>${rightHtml}</div></div>
+        </div>
+        <div class="section-title" style="margin-top:8px;">② お手本を見て練習しよう（なぞり書き ＋ 4回練習マス）</div>
+        <table class="practice-table">
+          <thead><tr><th style="width:4%;">No</th><th style="width:22%;">お手本</th><th style="width:15%;">① なぞり</th><th style="width:15%;">② 練習</th><th style="width:15%;">③ 練習</th><th style="width:15%;">④ 練習</th><th style="width:14%;">⑤ 練習</th></tr></thead>
+          <tbody>${practiceRowsHtml}</tbody>
+        </table>`;
+      window.print();
+    }
+
+    /* =========================================================
+       言葉パート（画面完結の一問一答クイズ）
+       ========================================================= */
+    const KOTOBA_SETTINGS_KEY = "kokugo_kotoba_settings_v1";
+    const KOTOBA_MASTERY_KEY  = "kokugo_kotoba_stats_v1";
+    const kotobaMastery = makeMasteryHelpers(KOTOBA_MASTERY_KEY);
+
+    let kotobaSelectedUnits = new Set();
+    let kotobaSelectedGenres = new Set(); // 空 = 全ジャンル
+    let kotobaCurrentCount  = 10;
+    let kotobaCurrentSet    = [];
+    let kotobaIndex         = 0;
+    let kotobaCorrectCount  = 0;
+    let kotobaAnsweredCount = 0;
+
+    function switchKotobaTab(tab) {
+      document.querySelectorAll('#panel-kotoba .nav-tab').forEach(t => t.classList.remove('active'));
+      const tabBtn = document.getElementById(`tab-kotoba-${tab}`);
+      if (tabBtn) tabBtn.classList.add('active');
+      document.getElementById('screen-kotoba-home').style.display    = tab === 'home'    ? 'block' : 'none';
+      document.getElementById('screen-kotoba-quiz').style.display    = tab === 'quiz'    ? 'block' : 'none';
+      document.getElementById('screen-kotoba-result').style.display  = 'none';
+      document.getElementById('screen-kotoba-history').style.display = tab === 'history' ? 'block' : 'none';
+      if (tab === 'home')    kotobaUpdateProgressDisplay();
+      if (tab === 'history') kotobaRenderHistoryList();
+    }
+
+    function kotobaLoadCachedSettings() {
+      try {
+        const raw = localStorage.getItem(KOTOBA_SETTINGS_KEY);
+        if (!raw) return;
+        const cached = JSON.parse(raw);
+        if (Array.isArray(cached.selectedUnits) && cached.selectedUnits.length > 0) kotobaSelectedUnits = new Set(cached.selectedUnits);
+        if (Array.isArray(cached.selectedGenres)) kotobaSelectedGenres = new Set(cached.selectedGenres);
+        if (cached.count !== undefined) {
+          kotobaCurrentCount = cached.count;
+          document.querySelectorAll('#kotoba-count-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.count == kotobaCurrentCount));
+          if (typeof kotobaCurrentCount === 'number') document.getElementById('kotoba-count-custom-input').value = kotobaCurrentCount;
+        }
+      } catch (e) {}
+    }
+    function kotobaSaveCachedSettings() {
+      try { localStorage.setItem(KOTOBA_SETTINGS_KEY, JSON.stringify({ selectedUnits: Array.from(kotobaSelectedUnits), selectedGenres: Array.from(kotobaSelectedGenres), count: kotobaCurrentCount })); } catch (e) {}
+    }
+
+    function kotobaRenderUnitGrid() {
+      const container = document.getElementById('kotoba-unit-grid-container');
+      container.innerHTML = '';
+      KOTOBA_UNITS.forEach(u => {
+        const isSel = kotobaSelectedUnits.has(u.key);
+        const btn = document.createElement('button');
+        btn.className = `unit-btn ${isSel ? 'selected' : ''}`;
+        btn.innerHTML = `<span>${u.name}</span><span class="unit-badge">${u.count}問</span>`;
+        btn.onclick = () => kotobaToggleUnit(u.key);
+        container.appendChild(btn);
+      });
+      if (KOTOBA_UNITS.length === 0) container.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">まだ言葉データがありません（準備中）。</p>';
+    }
+    function kotobaToggleUnit(key) {
+      if (kotobaSelectedUnits.has(key)) kotobaSelectedUnits.delete(key); else kotobaSelectedUnits.add(key);
+      kotobaRenderUnitGrid(); kotobaUpdateSelectedCountLabel(); kotobaUpdateProgressDisplay(); kotobaSaveCachedSettings();
+    }
+    function kotobaSelectAllUnits() { KOTOBA_UNITS.forEach(u => kotobaSelectedUnits.add(u.key)); kotobaRenderUnitGrid(); kotobaUpdateSelectedCountLabel(); kotobaUpdateProgressDisplay(); kotobaSaveCachedSettings(); }
+    function kotobaClearAllUnits() { kotobaSelectedUnits.clear(); kotobaRenderUnitGrid(); kotobaUpdateSelectedCountLabel(); kotobaUpdateProgressDisplay(); kotobaSaveCachedSettings(); }
+    function kotobaUpdateSelectedCountLabel() {
+      const pool = kotobaGetPool();
+      document.getElementById('kotoba-selected-units-count').textContent = `${kotobaSelectedUnits.size}単元 / ${pool.length}問 選択中`;
+    }
+
+    function kotobaRenderGenreChips() {
+      const container = document.getElementById('kotoba-genre-chip-container');
+      const genres = Array.from(new Set(KOTOBA_DATA.map(d => d.genre).filter(Boolean)));
+      container.innerHTML = '';
+      genres.forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = `genre-chip ${kotobaSelectedGenres.has(g) ? 'active' : ''}`;
+        btn.textContent = g;
+        btn.onclick = () => kotobaToggleGenre(g);
+        container.appendChild(btn);
+      });
+      if (genres.length === 0) container.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem;">（データ準備中）</p>';
+    }
+    function kotobaToggleGenre(g) {
+      if (kotobaSelectedGenres.has(g)) kotobaSelectedGenres.delete(g); else kotobaSelectedGenres.add(g);
+      kotobaRenderGenreChips(); kotobaUpdateProgressDisplay(); kotobaSaveCachedSettings();
+    }
+
+    function kotobaSetCount(cnt) {
+      kotobaCurrentCount = cnt;
+      document.querySelectorAll('#kotoba-count-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.count == cnt));
+      document.getElementById('kotoba-count-custom-input').value = typeof cnt === 'number' ? cnt : '';
+      kotobaSaveCachedSettings();
+    }
+    function kotobaSetCountCustom(val) {
+      const n = parseInt(val, 10);
+      if (!isNaN(n) && n >= 1) { kotobaCurrentCount = n; document.querySelectorAll('#kotoba-count-chips .chip').forEach(c => c.classList.remove('active')); }
+      kotobaSaveCachedSettings();
+    }
+
+    function kotobaGetPool() {
+      let pool = kotobaSelectedUnits.size === 0 ? [] : KOTOBA_DATA.filter(d => kotobaSelectedUnits.has(d.unitKey));
+      if (kotobaSelectedGenres.size > 0) pool = pool.filter(d => kotobaSelectedGenres.has(d.genre));
+      return pool;
+    }
+
+    function kotobaUpdateProgressDisplay() {
+      const pool = kotobaGetPool();
+      const total = pool.length;
+      if (total === 0) {
+        document.getElementById('kotoba-progress-text').textContent = '単元を選択してください';
+        document.getElementById('kotoba-progress-fill').style.width = '0%';
+        return;
+      }
+      const passed = pool.filter(d => kotobaMastery.isCleared(d.id)).length;
+      const pct = Math.round((passed / total) * 100);
+      document.getElementById('kotoba-progress-text').textContent = `${passed} / ${total} 問 クリア (${pct}%)`;
+      document.getElementById('kotoba-progress-fill').style.width = `${pct}%`;
+      const remaining = total - passed;
+      document.getElementById('kotoba-progress-sub-text').textContent = remaining === 0
+        ? '🎉 全問クリア達成！おめでとうございます！'
+        : `残り ${remaining} 問が未クリアです（次回はこの中から優先して出題されます）。`;
+    }
+
+    function kotobaStartQuiz() {
+      const pool = kotobaGetPool();
+      if (pool.length === 0) { alert('単元を1つ以上選択してください。'); return; }
+      const mastery = kotobaMastery.get();
+      const { set, allClearedOfDue } = pickDailySet(pool, mastery, kotobaCurrentCount);
+      if (allClearedOfDue) alert('🎉 選択範囲はすべてクリア済み！全問からランダムで出題します。');
+      kotobaCurrentSet = set;
+      kotobaIndex = 0;
+      kotobaCorrectCount = 0;
+      kotobaAnsweredCount = 0;
+      document.getElementById('tab-kotoba-quiz').style.display = 'block';
+      switchKotobaTab('quiz');
+      kotobaRenderQuestion();
+    }
+
+    function kotobaRenderQuestion() {
+      const item = kotobaCurrentSet[kotobaIndex];
+      document.getElementById('kotoba-quiz-progress').textContent = `第 ${kotobaIndex + 1} 問 / ${kotobaCurrentSet.length} 問`;
+      document.getElementById('kotoba-quiz-genre').textContent = item.genre || '言葉';
+      document.getElementById('kotoba-quiz-q').textContent = item.q;
+      document.getElementById('kotoba-quiz-answer-area').innerHTML = `<button class="btn-reveal" onclick="kotobaRevealAnswer()">🔎 答えを見る</button>`;
+    }
+
+    function kotobaRevealAnswer() {
+      const item = kotobaCurrentSet[kotobaIndex];
+      document.getElementById('kotoba-quiz-answer-area').innerHTML = `
+        <div class="quiz-ans-box">
+          <div class="quiz-ans-word">${item.a}</div>
+          ${item.note ? `<div class="quiz-ans-note">出典：${item.note}</div>` : ''}
+        </div>
+        <div class="quiz-judge-row">
+          <button class="btn-judge ok" onclick="kotobaJudge(true)">⭕ 正解できた</button>
+          <button class="btn-judge ng" onclick="kotobaJudge(false)">❌ まちがえた</button>
+        </div>`;
+    }
+
+    function kotobaJudge(correct) {
+      const item = kotobaCurrentSet[kotobaIndex];
+      kotobaMastery.setStatus(item.id, correct ? 'mastered' : 'weak');
+      kotobaAnsweredCount++;
+      if (correct) kotobaCorrectCount++;
+      kotobaIndex++;
+      if (kotobaIndex >= kotobaCurrentSet.length) {
+        kotobaShowResult();
+      } else {
+        kotobaRenderQuestion();
+      }
+    }
+
+    function kotobaShowResult() {
+      document.getElementById('tab-kotoba-quiz').style.display = 'none';
+      document.getElementById('screen-kotoba-quiz').style.display = 'none';
+      document.getElementById('screen-kotoba-result').style.display = 'block';
+      document.getElementById('kotoba-result-score').textContent = `${kotobaCorrectCount} / ${kotobaAnsweredCount} 問 正解`;
+    }
+
+    function kotobaBackToHomeFromResult() {
+      document.getElementById('screen-kotoba-result').style.display = 'none';
+      switchKotobaTab('home');
+    }
+
+    function kotobaRenderHistoryList() {
+      const pool = kotobaGetPool();
+      const container = document.getElementById('kotoba-history-list-container');
+      if (pool.length === 0) { container.innerHTML = '<p style="text-align:center;padding:20px;color:#64748b;">単元を選択してください。</p>'; return; }
+      container.innerHTML = '';
+      pool.forEach(it => {
+        const isPassed = kotobaMastery.isCleared(it.id);
+        const div = document.createElement('div');
+        div.className = 'history-row';
+        div.innerHTML = `
+          <div><div style="font-size:0.8rem;color:#64748b;">${it.genre || ''} (${it.unitKey})</div><div style="font-size:1rem;font-weight:bold;">${it.q}</div></div>
+          <span class="${isPassed ? 'status-badge-passed' : 'status-badge-unpassed'}">${isPassed ? '⭕ クリア済み' : '❌ 未クリア'}</span>`;
+        container.appendChild(div);
+      });
+    }
+    function kotobaClearHistoryData() {
+      if (confirm('クリア履歴をすべてリセットしますか？')) {
+        localStorage.removeItem(KOTOBA_MASTERY_KEY);
+        alert('リセットしました。');
+        kotobaUpdateProgressDisplay(); kotobaRenderHistoryList();
+      }
+    }
+
+    /* =========================================================
+       初期化
+       ========================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      KANJI_UNITS.forEach(u => kanjiSelectedUnits.add(u.key));
+      kanjiLoadCachedSettings();
+      kanjiRenderUnitGrid();
+      kanjiUpdateProgressDisplay();
+      kanjiUpdateSelectedCountLabel();
+      kanjiGenerateDailySet(false);
+
+      KOTOBA_UNITS.forEach(u => kotobaSelectedUnits.add(u.key));
+      kotobaLoadCachedSettings();
+      kotobaRenderUnitGrid();
+      kotobaRenderGenreChips();
+      kotobaUpdateProgressDisplay();
+      kotobaUpdateSelectedCountLabel();
+    });
+  </script>
+</body>
+</html>
