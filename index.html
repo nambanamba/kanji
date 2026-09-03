@@ -38,6 +38,7 @@
     }
     header h1 { font-size: 1.2rem; font-weight: 700; }
     header p { font-size: 0.8rem; opacity: 0.9; margin-top: 2px; }
+    header .app-link { display: inline-block; margin-top: 8px; font-size: 0.78rem; color: #fff; opacity: 0.85; text-decoration: underline; }
 
     .container { max-width: 800px; margin: 0 auto; padding: 14px; }
 
@@ -160,7 +161,11 @@
 
     .status-badge-passed { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: #dcfce7; color: #16a34a; }
     .status-badge-unpassed { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: #fee2e2; color: #dc2626; }
-    .history-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+    .history-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; gap: 10px; }
+    .history-toggle-row { display: flex; gap: 6px; flex-shrink: 0; }
+    .history-toggle-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); background: #fff; font-size: 1.2rem; font-weight: 800; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+    .history-toggle-btn.ok.active { background: var(--success); border-color: var(--success); color: #fff; }
+    .history-toggle-btn.ng.active { background: var(--danger); border-color: var(--danger); color: #fff; }
 
     /* 言葉クイズ画面 */
     .genre-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -213,16 +218,16 @@
       .practice-table thead tr { page-break-after: avoid; }
       .practice-table th { background: #f8fafc !important; border: 1px solid #000; font-size: 7.5pt; padding: 2px; text-align: center; }
 
-      .p-row { height: 30mm; page-break-inside: avoid; break-inside: avoid; }
+      .p-row { height: 42mm; page-break-inside: avoid; break-inside: avoid; }
       .p-no-td { border: 1px solid #000; text-align: center; font-size: 10pt; font-weight: bold; vertical-align: middle; }
       .p-word-td { border: 1px solid #000; padding: 2px 6px; vertical-align: middle; }
-      .p-sample-word { font-size: 18pt; font-weight: bold; letter-spacing: 0.06em; line-height: 1.2; }
-      .p-kana-sub { font-size: 7pt; color: #555; }
+      .p-sample-word { font-size: 26pt; font-weight: bold; letter-spacing: 0.06em; line-height: 1.2; }
+      .p-kana-sub { font-size: 8pt; color: #555; }
       .p-box-td { border: 1px solid #000; padding: 0; vertical-align: middle; text-align: center; }
-      .p-grid-cell { width: 100%; height: 30mm; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; }
+      .p-grid-cell { width: 100%; height: 42mm; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; }
       .p-grid-cell::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; border-top: 1px dashed #bbb; }
       .p-grid-cell::after { content: ""; position: absolute; top: 0; left: 50%; width: 1px; height: 100%; border-left: 1px dashed #bbb; }
-      .p-trace-txt { font-size: 18pt; font-weight: bold; color: #c8c8c8 !important; letter-spacing: 0.06em; position: relative; z-index: 2; line-height: 1; }
+      .p-trace-txt { font-size: 26pt; font-weight: bold; color: #c8c8c8 !important; letter-spacing: 0.06em; position: relative; z-index: 2; line-height: 1; }
     }
   </style>
 </head>
@@ -231,6 +236,7 @@
   <header>
     <h1>📘 国語 漢字と言葉 ドリル</h1>
     <p>漢字は書いて覚える／言葉は画面でサクサク一問一答</p>
+    <a class="app-link" href="https://nambanamba.github.io/kosukequiz-battle/" target="_blank" rel="noopener">⇦ 対戦クイズ本体（kosukequiz-battle）へ</a>
   </header>
 
   <div class="container">
@@ -252,7 +258,7 @@
         <div class="progress-box">
           <div class="progress-title"><span>🎯 クリア進捗</span><span id="kanji-progress-text">0 / 0 語 クリア</span></div>
           <div class="progress-bar-bg"><div class="progress-bar-fill" id="kanji-progress-fill"></div></div>
-          <div class="progress-sub" id="kanji-progress-sub-text">💡 「できた」チェックが入っていない問題から自動選出されます。</div>
+          <div class="progress-sub" id="kanji-progress-sub-text">💡 まだやっていない語→間違えた語の順に、前から選ばれます。</div>
         </div>
 
         <div class="card">
@@ -281,7 +287,9 @@
             </div>
           </div>
 
-          <button class="btn-main" onclick="kanjiGenerateDailySetAndPrint()">🖨️ 今日の問題を印刷する（A4 縦）</button>
+          <button class="btn-main" onclick="kanjiPrintTestSheet()">🖨️ ① テストプリントを印刷（A4）</button>
+          <button class="btn-main" style="background:#0891b2; box-shadow:0 4px 10px rgba(8,145,178,0.3); margin-top:10px;" onclick="kanjiPrintPracticeSheet()">🖨️ ② 練習プリントを印刷（A4）</button>
+          <p style="font-size:0.76rem; color:var(--text-muted); margin-top:10px; text-align:center;">①②は同じ問題セットで印刷されます。<a href="#" onclick="kanjiRerollSet(); return false;" style="color:var(--primary);">🔄 別の問題に出題し直す</a></p>
         </div>
       </div>
 
@@ -324,7 +332,7 @@
         <div class="progress-box">
           <div class="progress-title"><span>🎯 クリア進捗</span><span id="kotoba-progress-text">0 / 0 問 クリア</span></div>
           <div class="progress-bar-bg"><div class="progress-bar-fill" id="kotoba-progress-fill"></div></div>
-          <div class="progress-sub" id="kotoba-progress-sub-text">💡 間違えた問題から優先的に出題されます。</div>
+          <div class="progress-sub" id="kotoba-progress-sub-text">💡 まだやっていない問題→間違えた問題の順に、前から出題されます。</div>
         </div>
 
         <div class="card">
@@ -453,21 +461,21 @@
       return { get, save, setStatus, currentStatus, isCleared };
     }
 
+    // 優先順位：①未実施 ②苦手（間違い>正解） ③やや苦手（間違いあり、正解の方が多い） ④クリア済み。
+    // 各グループの中はシャッフル・並べ替えせず、poolに入っている順（データの並び順）のまま。
     function pickDailySet(pool, mastery, count) {
-      const lastCorrectOf = d => { const s = mastery[d.id]; return (s && s.lastCorrectAt) ? s.lastCorrectAt : 0; };
-      const tier1 = [], tier2 = [], tier3 = [];
+      const tier0 = [], tier1 = [], tier2 = [], tier3 = [];
       pool.forEach(d => {
         const s = mastery[d.id];
-        const wrong = s ? (s.wrong||0) : 0, correct = s ? (s.correct||0) : 0;
+        if (!s) { tier0.push(d); return; }
+        const wrong = s.wrong||0, correct = s.correct||0;
         if (wrong > correct) tier1.push(d);
         else if (wrong > 0) tier2.push(d);
         else tier3.push(d);
       });
-      tier1.sort((a,b) => lastCorrectOf(a) - lastCorrectOf(b));
-      tier2.sort((a,b) => lastCorrectOf(a) - lastCorrectOf(b));
-      const ordered = tier1.concat(tier2).concat([...tier3].sort(() => Math.random() - 0.5));
+      const ordered = tier0.concat(tier1).concat(tier2).concat(tier3);
       const targetCount = count === "all" ? ordered.length : Math.min(parseInt(count, 10) || 10, ordered.length);
-      return { set: ordered.slice(0, targetCount), allClearedOfDue: tier1.length === 0 && tier2.length === 0 };
+      return { set: ordered.slice(0, targetCount), allClearedOfDue: tier0.length === 0 && tier1.length === 0 && tier2.length === 0 };
     }
 
     /* =========================================================
@@ -524,10 +532,11 @@
     }
     function kanjiToggleUnit(key) {
       if (kanjiSelectedUnits.has(key)) kanjiSelectedUnits.delete(key); else kanjiSelectedUnits.add(key);
+      kanjiCurrentSet = [];
       kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings();
     }
-    function kanjiSelectAllUnits() { KANJI_UNITS.forEach(u => kanjiSelectedUnits.add(u.key)); kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings(); }
-    function kanjiClearAllUnits() { kanjiSelectedUnits.clear(); kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings(); }
+    function kanjiSelectAllUnits() { KANJI_UNITS.forEach(u => kanjiSelectedUnits.add(u.key)); kanjiCurrentSet = []; kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings(); }
+    function kanjiClearAllUnits() { kanjiSelectedUnits.clear(); kanjiCurrentSet = []; kanjiRenderUnitGrid(); kanjiUpdateSelectedCountLabel(); kanjiUpdateProgressDisplay(); kanjiSaveCachedSettings(); }
     function kanjiUpdateSelectedCountLabel() {
       const pool = kanjiGetPool();
       document.getElementById('kanji-selected-units-count').textContent = `${kanjiSelectedUnits.size}単元 / ${pool.length}語 選択中`;
@@ -535,13 +544,14 @@
 
     function kanjiSetCount(cnt) {
       kanjiCurrentCount = cnt;
+      kanjiCurrentSet = [];
       document.querySelectorAll('#kanji-count-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.count == cnt));
       document.getElementById('kanji-count-custom-input').value = typeof cnt === 'number' ? cnt : '';
       kanjiSaveCachedSettings();
     }
     function kanjiSetCountCustom(val) {
       const n = parseInt(val, 10);
-      if (!isNaN(n) && n >= 1) { kanjiCurrentCount = n; document.querySelectorAll('#kanji-count-chips .chip').forEach(c => c.classList.remove('active')); }
+      if (!isNaN(n) && n >= 1) { kanjiCurrentCount = n; kanjiCurrentSet = []; document.querySelectorAll('#kanji-count-chips .chip').forEach(c => c.classList.remove('active')); }
       kanjiSaveCachedSettings();
     }
 
@@ -570,10 +580,17 @@
       if (pool.length === 0) { if (alertIfEmpty) alert('単元を1つ以上選択してください。'); return; }
       const mastery = kanjiMastery.get();
       const { set, allClearedOfDue } = pickDailySet(pool, mastery, kanjiCurrentCount);
-      if (allClearedOfDue && alertIfEmpty) alert('🎉 選択単元の漢字はすべてクリア済み！全問からランダムで出題します。');
+      if (allClearedOfDue && alertIfEmpty) alert('🎉 選択単元の漢字はすべてクリア済み！最初から順番に出題します。');
       kanjiCurrentSet = set;
     }
-    function kanjiGenerateDailySetAndPrint() { kanjiGenerateDailySet(true); if (kanjiCurrentSet.length > 0) kanjiPrintSinglePage(); }
+    // ①②とも同じセットを使う。セットが未生成のときだけ新しく作る（単元・問題数を変えると自動でクリアされる）
+    function kanjiEnsureSet() {
+      if (kanjiCurrentSet.length === 0) kanjiGenerateDailySet(true);
+      return kanjiCurrentSet.length > 0;
+    }
+    function kanjiRerollSet() { kanjiGenerateDailySet(true); }
+    function kanjiPrintTestSheet()     { if (kanjiEnsureSet()) kanjiRenderTestPrint(); }
+    function kanjiPrintPracticeSheet() { if (kanjiEnsureSet()) kanjiRenderPracticePrint(); }
 
     function kanjiRenderCheckList() {
       const container = document.getElementById('kanji-check-list-container');
@@ -624,14 +641,31 @@
       if (pool.length === 0) { container.innerHTML = '<p style="text-align:center;padding:20px;color:#64748b;">単元を選択してください。</p>'; return; }
       container.innerHTML = '';
       pool.forEach(it => {
-        const isPassed = kanjiMastery.isCleared(it.id);
+        const status = kanjiMastery.currentStatus(it.id); // "correct" | "wrong" | null
         const div = document.createElement('div');
         div.className = 'history-row';
+        div.id = `kanji-history-row-${it.id}`;
         div.innerHTML = `
           <div><div style="font-size:0.8rem;color:#64748b;">${it.kana} (${it.unitKey})</div><div style="font-size:1.1rem;font-weight:bold;">${it.word}</div></div>
-          <span class="${isPassed ? 'status-badge-passed' : 'status-badge-unpassed'}">${isPassed ? '⭕ クリア済み' : '❌ 未クリア'}</span>`;
+          <div class="history-toggle-row">
+            <button class="history-toggle-btn ok ${status === 'correct' ? 'active' : ''}" onclick="kanjiToggleHistoryStatus('${it.id}', 'ok')">○</button>
+            <button class="history-toggle-btn ng ${status === 'wrong' ? 'active' : ''}" onclick="kanjiToggleHistoryStatus('${it.id}', 'ng')">✕</button>
+          </div>`;
         container.appendChild(div);
       });
+    }
+    // 一覧画面から直接〇✕を切り替える。同じボタンをもう一度押すと未実施に戻る
+    function kanjiToggleHistoryStatus(id, val) {
+      const current = kanjiMastery.currentStatus(id);
+      const target = val === 'ok' ? 'correct' : 'wrong';
+      kanjiMastery.setStatus(id, current === target ? 'unseen' : (val === 'ok' ? 'mastered' : 'weak'));
+      const newStatus = kanjiMastery.currentStatus(id);
+      const row = document.getElementById(`kanji-history-row-${id}`);
+      if (row) {
+        row.querySelector('.ok').classList.toggle('active', newStatus === 'correct');
+        row.querySelector('.ng').classList.toggle('active', newStatus === 'wrong');
+      }
+      kanjiUpdateProgressDisplay();
     }
     function kanjiClearHistoryData() {
       if (confirm('クリア履歴をすべてリセットしますか？')) {
@@ -641,7 +675,8 @@
       }
     }
 
-    function kanjiPrintSinglePage() {
+    // ① テストプリント（穴埋め・書き取りテストのみ）
+    function kanjiRenderTestPrint() {
       const todayStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
       const unitNames = Array.from(kanjiSelectedUnits).join('・') || '全単元';
       const n = kanjiCurrentSet.length;
@@ -650,6 +685,23 @@
         <div class="test-item"><div class="test-q-text"><b>${idx + 1}.</b> ${it.kana} <span class="test-hint">(${it.mean})</span></div><div class="test-ans-box"></div></div>`;
       const leftHtml  = kanjiCurrentSet.slice(0, half).map((it, i) => makeTestItem(it, i)).join('');
       const rightHtml = kanjiCurrentSet.slice(half).map((it, i) => makeTestItem(it, half + i)).join('');
+      document.getElementById('print-region').innerHTML = `
+        <div class="p-head">
+          <div><div class="p-title">中学受験 国語 漢字テスト（${n}問）</div><div style="font-size:8pt;color:#555;margin-top:1px;">範囲: ${unitNames}</div></div>
+          <div class="p-meta"><div>日付: <span class="p-line">${todayStr}</span></div><div>氏名: <span class="p-line"></span></div><div>得点: <span class="p-line" style="min-width:38px;"> / ${n}</span></div></div>
+        </div>
+        <div class="test-section">
+          <div class="section-title">ひらがなを正しい漢字で書きましょう</div>
+          <div class="test-grid"><div>${leftHtml}</div><div>${rightHtml}</div></div>
+        </div>`;
+      window.print();
+    }
+
+    // ② 練習プリント（お手本＋なぞり書き＋4回練習のみ）
+    function kanjiRenderPracticePrint() {
+      const todayStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+      const unitNames = Array.from(kanjiSelectedUnits).join('・') || '全単元';
+      const n = kanjiCurrentSet.length;
       const practiceRowsHtml = kanjiCurrentSet.map((it, idx) => `
         <tr class="p-row">
           <td class="p-no-td" style="width:4%;">${idx + 1}</td>
@@ -662,14 +714,10 @@
         </tr>`).join('');
       document.getElementById('print-region').innerHTML = `
         <div class="p-head">
-          <div><div class="p-title">中学受験 国語 漢字テスト＆練習プリント（${n}問）</div><div style="font-size:8pt;color:#555;margin-top:1px;">範囲: ${unitNames}</div></div>
-          <div class="p-meta"><div>日付: <span class="p-line">${todayStr}</span></div><div>氏名: <span class="p-line"></span></div><div>得点: <span class="p-line" style="min-width:38px;"> / ${n}</span></div></div>
+          <div><div class="p-title">中学受験 国語 漢字練習プリント（${n}問）</div><div style="font-size:8pt;color:#555;margin-top:1px;">範囲: ${unitNames}</div></div>
+          <div class="p-meta"><div>日付: <span class="p-line">${todayStr}</span></div><div>氏名: <span class="p-line"></span></div></div>
         </div>
-        <div class="test-section">
-          <div class="section-title">① まずテストしてみよう（ひらがなを正しい漢字で書く）</div>
-          <div class="test-grid"><div>${leftHtml}</div><div>${rightHtml}</div></div>
-        </div>
-        <div class="section-title" style="margin-top:8px;">② お手本を見て練習しよう（なぞり書き ＋ 4回練習マス）</div>
+        <div class="section-title">お手本を見て練習しよう（なぞり書き ＋ 4回練習マス）</div>
         <table class="practice-table">
           <thead><tr><th style="width:4%;">No</th><th style="width:22%;">お手本</th><th style="width:15%;">① なぞり</th><th style="width:15%;">② 練習</th><th style="width:15%;">③ 練習</th><th style="width:15%;">④ 練習</th><th style="width:14%;">⑤ 練習</th></tr></thead>
           <tbody>${practiceRowsHtml}</tbody>
@@ -805,7 +853,7 @@
       if (pool.length === 0) { alert('単元を1つ以上選択してください。'); return; }
       const mastery = kotobaMastery.get();
       const { set, allClearedOfDue } = pickDailySet(pool, mastery, kotobaCurrentCount);
-      if (allClearedOfDue) alert('🎉 選択範囲はすべてクリア済み！全問からランダムで出題します。');
+      if (allClearedOfDue) alert('🎉 選択範囲はすべてクリア済み！最初から順番に出題します。');
       kotobaCurrentSet = set;
       kotobaIndex = 0;
       kotobaCorrectCount = 0;
